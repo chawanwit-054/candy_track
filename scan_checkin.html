@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>เช็คชื่อเข้าเรียน - Candy Track</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Trirong:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body {
+            font-family: 'Trirong', sans-serif;
+            background-color: #fdf2f8;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+    </style>
+</head>
+
+<body
+    class="min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-br from-pink-100 via-white to-blue-100 relative">
+
+    <div class="glass w-full max-w-md rounded-3xl p-6 shadow-2xl border border-pink-200 z-10" id="main-card">
+
+        <!-- Header -->
+        <div class="text-center mb-6 border-b border-pink-100 pb-6">
+            <div
+                class="w-16 h-16 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-3 shadow-inner text-pink-600 text-3xl">
+                <i class="fa-solid fa-graduation-cap"></i>
+            </div>
+            <h1 class="text-2xl font-bold text-gray-800" id="display-course-name">กำลังโหลด...</h1>
+            <p class="text-sm font-bold text-pink-600 mt-2 bg-pink-50 inline-block px-3 py-1 rounded-full border border-pink-100"
+                id="display-session">ครั้งที่ -</p>
+        </div>
+
+        <!-- Clock -->
+        <div class="text-center mb-6">
+            <p class="text-xs text-gray-500 font-bold mb-1">เวลาปัจจุบัน</p>
+            <div class="text-4xl font-mono font-black text-gray-700 tracking-wider drop-shadow-sm" id="clock">00:00:00
+            </div>
+        </div>
+
+        <!-- Form -->
+        <form id="checkin-form" class="space-y-4">
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-1">รหัสนักศึกษา <span
+                        class="text-red-500">*</span></label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <i class="fa-regular fa-id-card text-gray-400"></i>
+                    </div>
+                    <input type="text" id="student-id" required
+                        class="w-full pl-11 pr-4 py-4 rounded-xl border-2 border-gray-200 shadow-sm focus:border-pink-500 focus:ring focus:ring-pink-200 outline-none font-mono font-bold text-lg uppercase transition-all"
+                        placeholder="เช่น STD001">
+                </div>
+            </div>
+
+            <div
+                class="bg-yellow-50 p-3 rounded-xl border border-yellow-200 text-xs text-yellow-700 flex gap-2 items-start mt-2 shadow-sm">
+                <i class="fa-solid fa-location-dot mt-0.5"></i>
+                <p>ระบบจะขอพิกัด GPS เพื่อยืนยันว่าคุณอยู่ในห้องเรียน กรุณากด <b>"อนุญาต" (Allow)</b></p>
+            </div>
+
+            <button type="submit" id="submit-btn"
+                class="w-full bg-pink-500 hover:bg-pink-600 text-white font-bold py-4 rounded-xl shadow-lg transition-transform active:scale-95 text-lg flex items-center justify-center gap-2 mt-6">
+                <i class="fa-solid fa-check-circle"></i> เช็คชื่อเข้าเรียน
+            </button>
+        </form>
+    </div>
+
+    <!-- Success Result View (ซ่อนไว้ก่อน) -->
+    <div class="hidden glass w-full max-w-md rounded-3xl p-8 shadow-2xl border border-pink-200 z-10 text-center"
+        id="result-card">
+        <div id="result-icon"
+            class="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-4 text-5xl text-white shadow-lg">
+            <!-- Icon -->
+        </div>
+        <h2 class="text-3xl font-black text-gray-800 mb-2" id="result-title">เช็คชื่อสำเร็จ</h2>
+        <p class="text-gray-600 font-bold text-lg mb-1" id="result-status">สถานะ: มาเรียน</p>
+        <p class="text-sm text-gray-500 mb-8" id="result-distance">ระยะห่าง: 0 เมตร</p>
+
+        <button onclick="closeWindow()"
+            class="w-full bg-gray-800 hover:bg-gray-900 text-white font-bold py-4 rounded-xl shadow-lg transition-transform active:scale-95 text-lg">
+            <i class="fa-solid fa-xmark mr-1"></i> ปิดหน้านี้
+        </button>
+    </div>
+
+    <script>
+        // ???? เอา SCRIPT_URL ที่ Deploy จาก Apps Script มาใส่ตรงนี้ ????
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby6Us1RWIER765S-pOIRCYLTQIqmJngzjiRzUDgAtxR835NZz7iaHA_knOe56JFKIb6/exec';
+
+        // 1. ดึงพารามิเตอร์ที่แนบมากับ URL QR Code
+        const urlParams = new URLSearchParams(window.location.search);
+        const courseId = urlParams.get('c');
+        const courseName = urlParams.get('cn');
+        const sessionNo = urlParams.get('s');
+        const qrTimestamp = urlParams.get('t');
+
+        // ตรวจสอบความถูกต้องของลิงก์
+        if (!courseId || !sessionNo || !qrTimestamp) {
+            Swal.fire({ icon: 'error', title: 'ลิงก์ไม่ถูกต้อง', text: 'กรุณาสแกน QR Code จากหน้าจอโปรเจคเตอร์อีกครั้ง', confirmButtonText: 'รับทราบ' });
+            document.getElementById('submit-btn').disabled = true;
+            document.getElementById('submit-btn').classList.replace('bg-pink-500', 'bg-gray-300');
+        } else {
+            document.getElementById('display-course-name').innerText = courseName || courseId;
+            document.getElementById('display-session').innerText = `เช็คชื่อครั้งที่ ${sessionNo}`;
+        }
+
+        // 2. นาฬิกาแสดงเวลาปัจจุบัน
+        setInterval(() => {
+            document.getElementById('clock').innerText = new Date().toLocaleTimeString('th-TH');
+        }, 1000);
+
+        // 3. จัดการการกดเช็คชื่อ
+        document.getElementById('checkin-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const studentId = document.getElementById('student-id').value.trim().toUpperCase();
+
+            // ???? เช็ค Local Storage (ดักไม่ให้กดย้ำ/กดซ้ำวิชาเดิมครั้งเดิม)
+            const checkinKey = `checked_in_${courseId}_${sessionNo}_${studentId}`;
+            if (localStorage.getItem(checkinKey)) {
+                return Swal.fire('คุณเช็คชื่อไปแล้ว!', 'ระบบไม่อนุญาตให้เช็คชื่อซ้ำในครั้งเดียวกัน', 'warning');
+            }
+
+            // ขอ GPS
+            Swal.fire({ title: 'กำลังตรวจสอบตำแหน่ง...', text: 'กรุณากดอนุญาตการเข้าถึง GPS', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        submitAttendanceData(studentId, lat, lng, checkinKey);
+                    },
+                    (error) => {
+                        Swal.fire('เกิดข้อผิดพลาด', 'ต้องอนุญาตให้เข้าถึงตำแหน่ง (GPS) จึงจะสามารถเช็คชื่อได้', 'error');
+                    },
+                    { enableHighAccuracy: true, timeout: 10000 }
+                );
+            } else {
+                Swal.fire('ไม่รองรับ', 'เบราว์เซอร์ของคุณไม่รองรับการระบุตำแหน่ง', 'error');
+            }
+        });
+
+        // 4. ส่งข้อมูลไปที่ Google Apps Script API
+        async function submitAttendanceData(studentId, lat, lng, checkinKey) {
+            Swal.fire({ title: 'กำลังบันทึกข้อมูล...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+            // สร้าง Token ให้เหมือนที่ Backend ต้องการ
+            const token = `${courseId}|${qrTimestamp}|${sessionNo}`;
+
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'submitAttendance',
+                        payload: { token: token, lat: lat, lng: lng, studentId: studentId }
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    // ✅ บันทึกลงเครื่องว่าเคยเช็คไปแล้ว
+                    localStorage.setItem(checkinKey, "true");
+
+                    Swal.close();
+                    showSuccessScreen(result.data);
+                } else {
+                    Swal.fire('ผิดพลาด', result.message, 'error');
+                }
+            } catch (error) {
+                Swal.fire('ระบบขัดข้อง', 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้', 'error');
+            }
+        }
+
+        // 5. แสดงหน้าจอผลลัพธ์การเช็คชื่อ
+        function showSuccessScreen(data) {
+            document.getElementById('main-card').classList.add('hidden');
+            document.getElementById('result-card').classList.remove('hidden');
+
+            const statusEl = document.getElementById('result-status');
+            const iconEl = document.getElementById('result-icon');
+
+            document.getElementById('result-distance').innerText = `ระยะห่างจากจุดเช็คชื่อ: ${data.distance} เมตร`;
+
+            if (data.status === 'มาเรียน') {
+                statusEl.innerText = 'สถานะ: มาเรียนปกติ';
+                statusEl.className = 'text-green-600 font-black text-xl mb-1';
+                iconEl.className = 'w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 text-5xl text-white shadow-lg bg-green-500';
+                iconEl.innerHTML = '<i class="fa-solid fa-check"></i>';
+            } else if (data.status === 'มาสาย') {
+                statusEl.innerText = 'สถานะ: มาสาย';
+                statusEl.className = 'text-yellow-600 font-black text-xl mb-1';
+                iconEl.className = 'w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 text-5xl text-white shadow-lg bg-yellow-500';
+                iconEl.innerHTML = '<i class="fa-solid fa-exclamation"></i>';
+                document.getElementById('result-title').innerText = "คุณมาสาย";
+            }
+        }
+
+        // 6. ฟังก์ชันปิดหน้าต่าง
+        function closeWindow() {
+            window.close(); // สั่งปิดหน้าต่าง (มือถือบางรุ่นจะปิดให้เลย)
+
+            // กรณี Browser บล็อกการใช้ window.close() ให้แสดงหน้าขอบคุณแทน
+            document.body.innerHTML = `
+                <div class="h-screen w-screen flex flex-col items-center justify-center bg-gray-900 text-white text-center p-6">
+                    <i class="fa-solid fa-circle-check text-6xl text-green-400 mb-4"></i>
+                    <h1 class="text-3xl font-bold">บันทึกสำเร็จ</h1>
+                    <p class="text-gray-400 mt-2 text-sm">ระบบได้รับข้อมูลของคุณแล้ว<br>คุณสามารถกดย้อนกลับหรือปิดหน้านี้ได้เลย</p>
+                </div>
+            `;
+        }
+    </script>
+</body>
+
+</html>

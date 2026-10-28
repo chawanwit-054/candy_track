@@ -1,0 +1,25 @@
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+    <h3 class="text-lg font-bold text-gray-800">จัดการรายวิชาและจุดเช็คชื่อ (GPS)</h3>
+    <button onclick="openCourseModal()" class="bg-candy-darkPink hover:bg-pink-500 text-white px-5 py-2.5 rounded-xl shadow-md font-bold transition-transform active:scale-95 w-full sm:w-auto">
+        <i class="fa-solid fa-plus mr-2"></i> เพิ่มวิชาใหม่
+    </button>
+</div>
+<div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left whitespace-nowrap">
+            <thead>
+                <tr class="bg-candy-pink/20 text-gray-700 text-sm border-b border-candy-pink/30">
+                    <th class="p-4">รหัสวิชา-Sec</th>
+                    <th class="p-4">ชื่อวิชา</th>
+                    <th class="p-4 text-center">ผู้เรียน</th>
+                    <th class="p-4">พิกัด GPS (Lat, Lng)</th>
+                    <th class="p-4 text-center">สถานะ</th>
+                    <th class="p-4 text-center">จัดการ</th>
+                </tr>
+            </thead>
+            <tbody id="course-table-body" class="divide-y divide-gray-50">
+                <!-- Rendered by JS -->
+            </tbody>
+        </table>
+    </div>
+</div>

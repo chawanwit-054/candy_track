@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Candy Track - หน้าหลัก</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Trirong:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Trirong', 'sans-serif'] },
+                    colors: {
+                        candy: { pink: '#FBCFE8', blue: '#BFDBFE', purple: '#E9D5FF', mint: '#D1FAE5', darkPink: '#F472B6', textPink: '#BE185D', textPurple: '#7E22CE' }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body {
+            font-family: 'Trirong', sans-serif;
+            background-color: #fdf2f8;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #FBCFE8;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #F472B6;
+        }
+
+        .hidden-view {
+            display: none !important;
+        }
+
+        .transition-all {
+            transition-property: all;
+            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+            transition-duration: 300ms;
+        }
+
+        @keyframes growUp {
+            from { height: 0; }
+            to { height: var(--target-height); }
+        }
+
+        .bar-animate {
+            animation: growUp 1s ease-out forwards;
+        }
+    </style>
+</head>
+
+<body class="text-gray-800 antialiased h-screen w-screen overflow-hidden flex flex-col">
+
+    <!-- ==================== TEACHER PORTAL ==================== -->
+    <div id="teacher-view" class="hidden-view h-full flex w-full bg-slate-50 relative">
+        <aside id="teacher-sidebar" class="w-64 bg-white shadow-xl transition-all duration-300 flex flex-col z-30 relative">
+            <div class="p-6 flex items-center justify-between bg-candy-pink bg-opacity-30 border-b border-candy-pink/20">
+                <div class="flex items-center gap-3">
+                    <i class="fa-solid fa-candy-cane text-2xl text-candy-darkPink"></i>
+                    <span class="font-bold text-xl text-candy-textPink menu-text whitespace-nowrap">Candy Track</span>
+                </div>
+                <button id="toggle-sidebar" class="text-gray-500 hover:text-candy-darkPink hidden md:block transition-colors">
+                    <i class="fa-solid fa-bars text-lg"></i>
+                </button>
+            </div>
+
+            <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
+                <div class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 mt-2 menu-text">เมนูหลัก</div>
+                <a href="#" onclick="switchTeacherTab('t-dashboard')" class="t-nav-btn flex items-center px-4 py-3 rounded-xl bg-candy-purple text-candy-textPurple transition-colors" data-target="t-dashboard">
+                    <i class="fa-solid fa-chart-pie w-6 text-center"></i>
+                    <span class="menu-text font-medium ml-2 whitespace-nowrap">แดชบอร์ด</span>
+                </a>
+
+                <div class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 mt-6 menu-text">จัดการข้อมูล</div>
+                <a href="#" onclick="switchTeacherTab('t-courses')" class="t-nav-btn flex items-center px-4 py-3 rounded-xl text-gray-600 hover:bg-candy-purple hover:text-candy-textPurple transition-colors" data-target="t-courses">
+                    <i class="fa-solid fa-book w-6 text-center"></i>
+                    <span class="menu-text font-medium ml-2 whitespace-nowrap">จัดการรายวิชา</span>
+                </a>
+                <a href="#" onclick="switchTeacherTab('t-students')" class="t-nav-btn flex items-center px-4 py-3 rounded-xl text-gray-600 hover:bg-candy-purple hover:text-candy-textPurple transition-colors" data-target="t-students">
+                    <i class="fa-solid fa-users-gear w-6 text-center"></i>
+                    <span class="menu-text font-medium ml-2 whitespace-nowrap">จัดการนักเรียน</span>
+                </a>
+
+                <div class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 mt-6 menu-text">ระบบเช็คชื่อ</div>
+                <a href="#" onclick="switchTeacherTab('t-attendance')" class="t-nav-btn flex items-center px-4 py-3 rounded-xl text-gray-600 hover:bg-candy-purple hover:text-candy-textPurple transition-colors" data-target="t-attendance">
+                    <i class="fa-solid fa-qrcode w-6 text-center"></i>
+                    <span class="menu-text font-medium ml-2 whitespace-nowrap">ฉาย QR Code</span>
+                </a>
+                <a href="#" onclick="switchTeacherTab('t-manual-attendance')" class="t-nav-btn flex items-center px-4 py-3 rounded-xl text-gray-600 hover:bg-candy-purple hover:text-candy-textPurple transition-colors" data-target="t-manual-attendance">
+                    <i class="fa-solid fa-list-check w-6 text-center"></i>
+                    <span class="menu-text font-medium ml-2 whitespace-nowrap">ขานชื่อรายบุคคล</span>
+                </a>
+                <a href="#" onclick="switchTeacherTab('t-reports')" class="t-nav-btn flex items-center px-4 py-3 rounded-xl text-gray-600 hover:bg-candy-purple hover:text-candy-textPurple transition-colors" data-target="t-reports">
+                    <i class="fa-solid fa-file-export w-6 text-center"></i>
+                    <span class="menu-text font-medium ml-2 whitespace-nowrap">รายงานย้อนหลัง</span>
+                </a>
+            </nav>
+
+            <div class="p-4 border-t border-gray-100 bg-gray-50 flex flex-col gap-2">
+                <button onclick="openProfileModal()" class="w-full flex items-center px-4 py-3 text-gray-600 hover:bg-gray-200 rounded-xl transition-colors font-bold">
+                    <i class="fa-solid fa-user-pen w-6 text-center"></i>
+                    <span class="menu-text ml-2 whitespace-nowrap">จัดการโปรไฟล์</span>
+                </button>
+                <button onclick="logout()" class="w-full flex items-center px-4 py-3 text-red-500 hover:bg-red-100 rounded-xl transition-colors font-bold">
+                    <i class="fa-solid fa-sign-out-alt w-6 text-center"></i>
+                    <span class="menu-text ml-2 whitespace-nowrap">ออกจากระบบ</span>
+                </button>
+            </div>
+        </aside>
+
+        <main class="flex-1 flex flex-col h-full overflow-hidden relative w-full" id="teacher-main-area">
+            <header class="h-16 bg-white/80 glass sticky top-0 z-20 shadow-sm flex items-center justify-between px-6" id="teacher-top-nav">
+                <div class="flex items-center gap-4">
+                    <button id="mobile-sidebar-toggle" class="md:hidden text-gray-500 text-xl hover:text-candy-textPink transition-colors">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <h2 id="t-page-title" class="text-xl font-bold text-gray-800">แดชบอร์ด</h2>
+                </div>
+                <div class="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded-xl transition-colors" onclick="openProfileModal()">
+                    <div class="text-right hidden sm:block">
+                        <div class="text-sm font-bold text-gray-700" id="t-user-name">อ.สมปอง (Teacher)</div>
+                        <div class="text-xs text-gray-500">ผู้ดูแลระบบ</div>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-candy-blue flex items-center justify-center text-candy-textPink font-bold shadow-md border-2 border-white">
+                        <img src="" class="rounded-full" id="t-user-avatar">
+                    </div>
+                </div>
+            </header>
+
+            <div class="flex-1 overflow-y-auto p-4 md:p-6 bg-gray-50/50" id="teacher-content-area"></div>
+        </main>
+    </div>
+
+    <!-- ==================== STUDENT PORTAL ==================== -->
+    <div id="student-view" class="hidden-view h-full flex flex-col w-full bg-slate-50 relative">
+        <header class="h-16 bg-white/90 glass shadow-sm flex items-center justify-between px-5 z-20 sticky top-0">
+            <div class="flex items-center gap-3">
+                <i class="fa-solid fa-candy-cane text-2xl text-candy-darkPink"></i>
+                <h1 class="text-xl font-bold text-candy-textPink tracking-tight">Candy Track</h1>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="logout()" class="text-gray-400 hover:text-red-500 p-2 transition-colors">
+                    <i class="fa-solid fa-sign-out-alt text-lg"></i>
+                </button>
+                <div class="w-9 h-9 rounded-full bg-candy-purple flex items-center justify-center shadow-md border-2 border-white cursor-pointer" onclick="openProfileModal()">
+                    <img src="" class="rounded-full" id="s-user-avatar">
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-1 overflow-y-auto pb-24 p-4 md:p-6 relative">
+            <div id="s-home" class="s-tab-content">
+                <div class="flex justify-between items-end mb-4">
+                    <h2 class="text-xl font-bold text-gray-800">วิชาเรียนของฉัน</h2>
+                    <span class="text-xs font-bold bg-candy-pink/50 text-candy-textPink px-3 py-1 rounded-full" id="s-course-count">0 วิชา</span>
+                </div>
+                <div class="space-y-4" id="student-course-list"></div>
+                <button onclick="openStudentJoinModal()" class="w-full mt-6 bg-white border-2 border-dashed border-gray-300 text-gray-500 py-4 rounded-2xl hover:bg-candy-pink/10 hover:border-candy-darkPink hover:text-candy-textPink transition-all flex items-center justify-center gap-2 font-bold shadow-sm">
+                    <i class="fa-solid fa-plus text-lg"></i> ค้นหาและเพิ่มรายวิชา
+                </button>
+            </div>
+
+            <div id="s-scan" class="s-tab-content hidden flex-col h-full max-w-md mx-auto">
+                <div class="text-center mb-6 mt-4">
+                    <div class="w-16 h-16 bg-candy-pink rounded-full flex items-center justify-center mx-auto mb-3 shadow-inner">
+                        <i class="fa-solid fa-qrcode text-3xl text-candy-textPink"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-800">สแกน QR เช็คชื่อ</h2>
+                    <p class="text-sm text-gray-500 mt-1">กรุณาอยู่ในระยะ 10 เมตรจากจุดเช็คชื่อ</p>
+                </div>
+                <div class="bg-white rounded-3xl p-4 shadow-lg border border-gray-100 flex-1 flex flex-col min-h-[400px]">
+                    <div class="bg-gray-900 rounded-2xl overflow-hidden shadow-inner relative flex-1 flex flex-col justify-center min-h-[300px]">
+                        <div id="reader" class="w-full"></div>
+                        <div class="absolute inset-0 pointer-events-none flex items-center justify-center hidden" id="scanner-overlay">
+                            <div class="w-56 h-56 border-4 border-candy-darkPink/80 rounded-[2rem] relative">
+                                <div class="absolute -top-1 -left-1 w-6 h-6 border-t-4 border-l-4 border-white rounded-tl-lg"></div>
+                                <div class="absolute -top-1 -right-1 w-6 h-6 border-t-4 border-r-4 border-white rounded-tr-lg"></div>
+                                <div class="absolute -bottom-1 -left-1 w-6 h-6 border-b-4 border-l-4 border-white rounded-bl-lg"></div>
+                                <div class="absolute -bottom-1 -right-1 w-6 h-6 border-b-4 border-r-4 border-white rounded-br-lg"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-4 bg-gray-50 rounded-2xl p-4 border border-gray-100 flex items-center gap-4">
+                        <div id="gps-indicator" class="w-12 h-12 rounded-full bg-yellow-100 text-yellow-600 flex items-center justify-center text-xl shadow-inner">
+                            <i class="fa-solid fa-location-crosshairs animate-spin"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="font-bold text-sm text-gray-800">พิกัด GPS ของคุณ</h4>
+                            <p id="gps-status-text" class="text-xs text-gray-500 mt-0.5">รอการอนุญาต...</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-6 space-y-3">
+                    <button id="start-scan-btn" onclick="requestGPSAndScan()" class="w-full bg-candy-darkPink hover:bg-pink-600 text-white py-4 rounded-2xl font-bold shadow-xl shadow-pink-200/50 transition-transform active:scale-95 text-lg flex justify-center items-center gap-2">
+                        <i class="fa-solid fa-camera"></i> เริ่มสแกนหน้าชั้นเรียน
+                    </button>
+                    <button id="stop-scan-btn" onclick="stopScanner()" class="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 py-4 rounded-2xl font-bold hidden transition-transform active:scale-95 text-lg">
+                        ยกเลิกการสแกน
+                    </button>
+                </div>
+            </div>
+
+            <div id="s-history" class="s-tab-content hidden">
+                <h2 class="text-xl font-bold text-gray-800 mb-6">ประวัติการเข้าเรียน</h2>
+                <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden relative">
+                    <div class="absolute w-1 bg-gray-100 top-0 bottom-0 left-8"></div>
+                    <ul class="p-6 space-y-8" id="student-history-list"></ul>
+                </div>
+            </div>
+        </main>
+
+        <nav class="fixed bottom-0 w-full bg-white/90 glass border-t border-gray-200 pb-safe shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.05)] z-30">
+            <div class="flex justify-around items-center h-20 px-2 relative">
+                <a href="#" onclick="switchStudentTab('s-home')" class="s-nav-btn flex flex-col items-center justify-center w-full h-full text-candy-textPink transition-colors" data-target="s-home">
+                    <i class="fa-solid fa-house text-2xl mb-1"></i><span class="text-xs font-bold">วิชาเรียน</span>
+                </a>
+                <div class="relative w-full h-full flex justify-center">
+                    <a href="#" onclick="switchStudentTab('s-scan')" class="s-nav-btn absolute -top-6 flex items-center justify-center w-18 h-18 bg-candy-darkPink rounded-full shadow-xl shadow-pink-300/50 text-white border-[6px] border-white transition-transform hover:scale-105 active:scale-95 z-10" data-target="s-scan" style="width: 72px; height: 72px;">
+                        <i class="fa-solid fa-qrcode text-3xl"></i>
+                    </a>
+                    <span class="absolute bottom-2 text-[10px] font-bold text-gray-500">สแกน QR</span>
+                </div>
+                <a href="#" onclick="switchStudentTab('s-history')" class="s-nav-btn flex flex-col items-center justify-center w-full h-full text-gray-400 hover:text-candy-textPink transition-colors" data-target="s-history">
+                    <i class="fa-solid fa-clock-rotate-left text-2xl mb-1"></i><span class="text-xs font-bold">ประวัติ</span>
+                </a>
+            </div>
+        </nav>
+    </div>
+
+    <!-- ==================== MODALS ==================== -->
+    <div id="modal-profile" class="hidden-view fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl transform scale-100 transition-transform">
+            <div class="flex justify-between items-center mb-6">
+                <div class="flex items-center gap-3">
+                    <i class="fa-solid fa-user-pen text-2xl text-candy-darkPink"></i>
+                    <h3 class="text-xl font-bold text-gray-800">จัดการโปรไฟล์</h3>
+                </div>
+                <button onclick="closeModal('modal-profile')" class="text-gray-400 hover:text-red-500 transition-colors">
+                    <i class="fa-solid fa-times text-xl"></i>
+                </button>
+            </div>
+            <form id="form-profile" onsubmit="saveProfile(event)" class="space-y-5">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">อีเมล (บัญชีผู้ใช้)</label>
+                    <input type="email" id="profile-email" class="w-full p-3.5 rounded-xl border bg-gray-100 text-gray-500 outline-none cursor-not-allowed" readonly>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">ชื่อ - นามสกุล</label>
+                    <input type="text" id="profile-name" required class="w-full p-3.5 rounded-xl border focus:border-candy-darkPink focus:ring focus:ring-candy-pink/50 transition-colors outline-none">
+                </div>
+                <div class="pt-2">
+                    <label class="block text-sm font-bold text-gray-700 mb-1">รหัสผ่านใหม่</label>
+                    <input type="password" id="profile-password" class="w-full p-3.5 rounded-xl border focus:border-candy-darkPink focus:ring focus:ring-candy-pink/50 transition-colors outline-none" placeholder="เว้นว่างไว้หากไม่ต้องการเปลี่ยน">
+                    <p class="text-xs text-gray-500 mt-1">* กรอกเฉพาะกรณีที่ต้องการเปลี่ยนรหัสผ่าน</p>
+                </div>
+                <button type="submit" class="w-full bg-candy-darkPink hover:bg-pink-600 text-white py-4 rounded-xl font-bold shadow-lg mt-4 transition-transform active:scale-95">
+                    <i class="fa-solid fa-floppy-disk mr-2"></i> บันทึกข้อมูล
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-course" class="hidden-view fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl transform scale-100 transition-transform">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-gray-800" id="modal-course-title">เพิ่มวิชาใหม่</h3>
+                <button onclick="closeModal('modal-course')" class="text-gray-400 hover:text-red-500"><i class="fa-solid fa-times text-xl"></i></button>
+            </div>
+            <form id="form-course" onsubmit="saveCourse(event)" class="space-y-4">
+                <input type="hidden" id="course-mode" value="add"><input type="hidden" id="course-old-id" value="">
+                <div class="flex gap-4">
+                    <div class="flex-1">
+                        <label class="block text-sm font-bold text-gray-700 mb-1">รหัสวิชา</label>
+                        <input type="text" id="course-id" required class="w-full p-3 rounded-xl border focus:border-candy-darkPink outline-none">
+                    </div>
+                    <div class="w-24">
+                        <label class="block text-sm font-bold text-gray-700 mb-1">Sec</label>
+                        <input type="text" id="course-sec" required class="w-full p-3 rounded-xl border focus:border-candy-darkPink outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">ชื่อวิชา</label>
+                    <input type="text" id="course-name" required class="w-full p-3 rounded-xl border focus:border-candy-darkPink outline-none">
+                </div>
+                <div class="bg-candy-blue/10 p-4 rounded-xl border border-candy-blue/30 relative">
+                    <label class="block text-sm font-bold text-gray-700 mb-2">พิกัด GPS (จุดเช็คชื่อ)</label>
+                    <div class="flex gap-2 mb-2">
+                        <input type="text" id="course-lat" required class="w-full p-2 text-sm rounded-lg border text-center font-mono" placeholder="Latitude" readonly>
+                        <input type="text" id="course-lng" required class="w-full p-2 text-sm rounded-lg border text-center font-mono" placeholder="Longitude" readonly>
+                    </div>
+                    <button type="button" onclick="getCurrentTeacherGPS()" class="w-full bg-blue-100 hover:bg-blue-200 text-blue-700 text-sm py-2 rounded-lg font-bold flex justify-center items-center gap-2 transition-colors">
+                        <i class="fa-solid fa-location-dot"></i> ดึงพิกัดปัจจุบัน
+                    </button>
+                </div>
+                <button type="submit" class="w-full bg-candy-darkPink text-white py-3.5 rounded-xl font-bold shadow mt-2">บันทึกข้อมูล</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-student" class="hidden-view fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-gray-800" id="modal-student-title">เพิ่มนักศึกษา</h3>
+                <button onclick="closeModal('modal-student')" class="text-gray-400 hover:text-red-500"><i class="fa-solid fa-times text-xl"></i></button>
+            </div>
+            <form id="form-student" onsubmit="saveStudent(event)" class="space-y-4">
+                <input type="hidden" id="student-mode" value="add">
+                <div><label class="block text-sm font-bold text-gray-700 mb-1">รหัสนักศึกษา</label><input type="text" id="student-id" required class="w-full p-3 rounded-xl border focus:border-candy-textPurple outline-none"></div>
+                <div><label class="block text-sm font-bold text-gray-700 mb-1">ชื่อ - นามสกุล</label><input type="text" id="student-name" required class="w-full p-3 rounded-xl border focus:border-candy-textPurple outline-none"></div>
+                <div><label class="block text-sm font-bold text-gray-700 mb-1">อีเมล</label><input type="email" id="student-email" required class="w-full p-3 rounded-xl border focus:border-candy-textPurple outline-none"></div>
+                <button type="submit" class="w-full bg-candy-textPurple text-white py-3.5 rounded-xl font-bold shadow mt-2">บันทึกข้อมูล</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-enrollment" class="hidden-view fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 w-full max-w-lg shadow-2xl flex flex-col max-h-[80vh]">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-gray-800" id="enroll-modal-title">ผู้เรียนในรายวิชา</h3>
+                <button onclick="closeModal('modal-enrollment')" class="text-gray-400 hover:text-red-500"><i class="fa-solid fa-times text-xl"></i></button>
+            </div>
+            <div class="bg-gray-50 p-4 rounded-xl border mb-4 flex gap-2">
+                <select id="enroll-add-select" class="flex-1 p-2 rounded-lg border outline-none text-sm"></select>
+                <button onclick="addEnrollment()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-bold text-sm shadow">เพิ่ม</button>
+            </div>
+            <div class="overflow-y-auto flex-1 border rounded-xl">
+                <table class="w-full text-left text-sm whitespace-nowrap">
+                    <thead class="bg-gray-100 sticky top-0">
+                        <tr>
+                            <th class="p-3">รหัส</th>
+                            <th class="p-3">ชื่อ</th>
+                            <th class="p-3 text-center">นำออก</th>
+                        </tr>
+                    </thead>
+                    <tbody id="enroll-table-body" class="divide-y"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-join-course" class="hidden-view fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl text-center">
+            <div class="w-16 h-16 bg-candy-blue rounded-full flex items-center justify-center mx-auto mb-4 text-blue-600 text-3xl">
+                <i class="fa-solid fa-book-open"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">ลงทะเบียนเรียนวิชาใหม่</h3>
+            <p class="text-sm text-gray-500 mb-6">เลือกวิชาที่คุณต้องการเข้าร่วมจากรายการด้านล่าง</p>
+            <select id="join-course-select" class="w-full p-4 rounded-xl border-2 border-candy-blue focus:border-blue-500 outline-none font-bold text-gray-700 mb-6 text-left appearance-none bg-gray-50"></select>
+            <div class="flex gap-3">
+                <button onclick="closeModal('modal-join-course')" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-600 py-3.5 rounded-xl font-bold">ยกเลิก</button>
+                <button onclick="studentJoinCourse()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-xl font-bold shadow-lg">ลงทะเบียน</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- External Script Modules -->
+    <script src="main.js"></script>
+    <script src="student_portal.js"></script>
+    <script src="dashboard.js"></script>
+    <script src="subject.js"></script>
+    <script src="student_mgmt.js"></script>
+    <script src="qr_generate.js"></script>
+    <script src="student_check.js"></script>
+    <script src="report.js"></script>
+</body>
+
+</html>

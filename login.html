@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>เข้าสู่ระบบ - Candy Track</title>
+    
+    <!-- Google Fonts: Trirong -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Trirong:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Trirong', 'sans-serif'] },
+                    colors: {
+                        candy: {
+                            pink: '#FBCFE8', blue: '#BFDBFE', purple: '#E9D5FF', mint: '#D1FAE5',
+                            darkPink: '#F472B6', textPink: '#BE185D', textPurple: '#7E22CE',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body { font-family: 'Trirong', sans-serif; background-color: #fdf2f8; }
+        .glass {
+            background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+    </style>
+</head>
+<body class="h-screen w-screen overflow-hidden flex items-center justify-center bg-gradient-to-br from-candy-pink via-white to-candy-blue p-4">
+
+    <div class="glass rounded-3xl p-8 max-w-md w-full shadow-2xl text-center">
+        <div class="mb-8">
+            <i class="fa-solid fa-candy-cane text-6xl text-candy-darkPink mb-4 drop-shadow-md"></i>
+            <h1 class="text-4xl font-bold text-candy-textPink">Candy Track</h1>
+            <p class="text-gray-600 mt-2 font-medium">ระบบเช็คชื่อด้วย GPS & Dynamic QR</p>
+        </div>
+        
+        <form id="login-form" class="space-y-5 text-left">
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-1">อีเมลผู้ใช้งาน</label>
+                <input type="email" id="login-email" value="teacher@candy.com" class="block w-full px-4 py-3.5 rounded-xl border border-gray-200 shadow-sm focus:border-candy-darkPink focus:ring focus:ring-candy-pink focus:ring-opacity-50 transition-colors outline-none" required>
+            </div>
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-1">รหัสผ่าน</label>
+                <input type="password" id="login-password" value="1234" class="block w-full px-4 py-3.5 rounded-xl border border-gray-200 shadow-sm focus:border-candy-darkPink focus:ring focus:ring-candy-pink focus:ring-opacity-50 transition-colors outline-none" required>
+            </div>
+            <div class="text-xs text-gray-600 mt-2 bg-white/70 p-3 rounded-xl border border-white">
+                <i class="fa-solid fa-circle-info text-candy-textPink"></i> <b>ข้อมูลสำหรับทดสอบระบบ:</b><br>
+                <span class="inline-block mt-1">👨‍🏫 <b>ครู:</b> teacher@candy.com / 1234</span><br>
+                <span class="inline-block mt-1">👨‍🎓 <b>นักเรียน:</b> student@candy.com / 1234</span>
+            </div>
+            <button type="submit" class="w-full bg-candy-darkPink hover:bg-pink-500 text-white font-bold py-4 px-4 rounded-xl shadow-lg transition-transform transform hover:scale-105 active:scale-95 text-lg mt-4">
+                เข้าสู่ระบบ <i class="fa-solid fa-arrow-right ml-2"></i>
+            </button>
+        </form>
+    </div>
+
+    <script>
+        // 🌟 นำ URL Web App ของคุณมาใส่เรียบร้อยแล้ว
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby6Us1RWIER765S-pOIRCYLTQIqmJngzjiRzUDgAtxR835NZz7iaHA_knOe56JFKIb6/exec'; 
+
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            
+            // เช็กเฉพาะกรณีที่ลืมใส่ URL
+            if(SCRIPT_URL === '') {
+                return Swal.fire('ลืมใส่ URL!', 'กรุณาแก้ไขบรรทัด SCRIPT_URL ก่อนครับ', 'warning');
+            }
+            
+            Swal.fire({ title: 'กำลังเข้าสู่ระบบ...', text: 'กำลังซิงค์ข้อมูลกับ Google Sheets', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'login', payload: { email, password } })
+                });
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    // 🌟 บันทึกข้อมูลที่ได้ลง Session Storage
+                    sessionStorage.setItem('candy_data', JSON.stringify(result.data));
+                    
+                    // เปลี่ยนหน้าไปที่หน้าหลัก (index.html)
+                    window.location.href = 'index.html';
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (err) {
+                Swal.fire('เกิดข้อผิดพลาด', err.message, 'error');
+            }
+        });
+    </script>
+</body>
+</html>
