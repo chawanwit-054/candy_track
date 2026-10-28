@@ -1,4 +1,4 @@
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz9LEjjzviiYt2xwiuV-8ui9pxRk1Xg6Oy3yTq54bOdz-_O-zFgXfplnKkXMojreZYF/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyc61cyNo_syUl7Sd8OM9iphgg5FawThafeqeoSGTnTN_8IdBs5t8PBO1j1NSB43Gp6/exec';
 
 // State Management Global Variables
 let DB_COURSES = [], DB_STUDENTS = [], DB_ENROLLMENTS = [], DB_SESSIONS = [], DB_ATTENDANCE = [];
