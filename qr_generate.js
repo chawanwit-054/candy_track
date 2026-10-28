@@ -13,8 +13,12 @@ function populateSessionCourseDropdown() {
         const courseId = e.target.value; 
         const hintEl = document.getElementById('session-no-hint'); 
         const inputEl = document.getElementById('session-no-input');
-        if (!courseId) { inputEl.value = ""; return; }
-        
+        if (!courseId || !inputEl) return;
+
+        // ปลดล็อกการจำกัดค่า ให้ครูสามารถแก้ไขกลับมาเช็ค "ครั้งที่ 1" หรือรอบที่ต้องการได้ตลอดเวลา
+        inputEl.min = 1;
+        inputEl.removeAttribute('max');
+
         const pastSessions = (typeof DB_SESSIONS !== 'undefined' ? DB_SESSIONS : [])
             .filter(s => String(s.courseId || '').trim().toLowerCase() === String(courseId).trim().toLowerCase())
             .sort((a, b) => parseInt(b.sessionNo, 10) - parseInt(a.sessionNo, 10));
@@ -22,11 +26,9 @@ function populateSessionCourseDropdown() {
         if (pastSessions.length > 0) { 
             const lastNo = parseInt(pastSessions[0].sessionNo, 10) || 1;
             inputEl.value = lastNo + 1; 
-            inputEl.max = lastNo + 1; 
-            if (hintEl) hintEl.innerHTML = `ล่าสุดคือ <b>ครั้งที่ ${lastNo}</b>`; 
+            if (hintEl) hintEl.innerHTML = `ล่าสุดคือ <b>ครั้งที่ ${lastNo}</b> (แก้ไขช่องนี้เป็น <b>1</b> ได้หากต้องการเช็คครั้งที่ 1)`; 
         } else { 
             inputEl.value = 1; 
-            inputEl.max = 1; 
             if (hintEl) hintEl.innerHTML = `เริ่มต้นที่ <b>ครั้งที่ 1</b>`; 
         }
     };
@@ -121,7 +123,6 @@ function startProjTimer() {
     }, 1000);
 }
 
-// 🛠️ ฟังก์ชันสร้าง QR Code กระชับ ป้องกันความยาวล้น
 function generateProjQR() {
     const container = document.getElementById('proj-qr-container');
     if (!container) return;
@@ -144,7 +145,6 @@ function generateProjQR() {
     }
 }
 
-// 🛠️ ฟังก์ชันดึงรายชื่อ Realtime รองรับโครงสร้าง JSON ตอบกลับทุกรูปแบบ ตัดช่องว่าง และแปลงชนิดข้อมูล
 async function updateProjLiveList() {
     try {
         const res = await callAPI('getAttendanceLive', { courseId: projCurrentCourse, sessionNo: projSessionNo });
@@ -189,7 +189,12 @@ async function updateProjLiveList() {
         const stName = a.name || a.studentId || 'นักศึกษา';
         const stStatus = String(a.status || '').trim();
         const isNormal = stStatus === 'มาเรียน';
-        const displayTime = a.time || '-';
+        
+        // 🛠️ แก้ไขเวลาปี 1899 ให้เหลือเฉพาะเวลา HH:mm:ss สวยงาม
+        let displayTime = String(a.time || '-').trim();
+        const timeMatch = displayTime.match(/\d{2}:\d{2}:\d{2}/) || displayTime.match(/\d{2}:\d{2}/);
+        if (timeMatch) displayTime = timeMatch[0];
+
         return `
         <li class="bg-white p-3 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center">
             <div class="flex items-center gap-3">
